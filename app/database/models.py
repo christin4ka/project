@@ -40,10 +40,10 @@ class AboutUs (Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     description:Mapped[str] = mapped_column(String(120))
     contact_type: Mapped[str] = mapped_column(String(20))
-    phone_number:Mapped[int] = mapped_column()
-    email:Mapped[int] = mapped_column()
+    phone_number:Mapped[str] = mapped_column(String(20))
+    email:Mapped[str] = mapped_column(String(50))
 
 # Создание таблиц
 async def async_main():
    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all(bind=engine))
+        await conn.run_sync(Base.metadata.create_all)

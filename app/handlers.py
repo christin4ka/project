@@ -17,8 +17,9 @@ class Registration(StatesGroup):
 # Обработчики
 @router.message(CommandStart())
 async def cmd_start(message: Message):
-    await rq.get_catalogs.set_user(message.from_user.id)
+    await rq.UserManager.set_user(message.from_user.id)
     await message.answer('Добро пожаловать в систему управления имущественным фондом предприятия!\n'
+                         'Пожалуйста, зарегистрируйтесь для продолжения\n'
                          '/registration - команда, с помощью которой вы сможете зарегистрироваться',reply_markup=kb.get_contact)
 
 @router.message(Command('registration'))
@@ -32,7 +33,7 @@ async def registration_text(message: Message, state: FSMContext):
     await state.update_data(contact=user_input)
 
     data = await state.get_data()
-    await message.answer(f"Ваши данные:\nКонтакт: {data['contact']}")
+    await message.answer(f'Ваши данные:\nКонтакт: {data['contact']}')
     await state.clear()
 
 @router.message(F.contact)
@@ -53,7 +54,7 @@ async def catalog(callback: CallbackQuery):
     catalog_id = int(callback.data.split('_')[1])
     await callback.answer(f'Вы выбрали категорию {catalog_id}')
     await callback.message.answer('Выберите имущественную единицу из каталога',
-        reply_markup=await kb.property_units(catalog_id))
+        reply_markup=await kb.assets(catalog_id))
     
 @router.message(Command('help'))
 async def cmd_help(message: Message):
@@ -61,5 +62,9 @@ async def cmd_help(message: Message):
 
 @router.message(Command('aboutus'))
 async def about_command(message: Message):
-    description = await rq.get_about_us()
-    await message.answer(f'О нас:\n{description}')
+    description = await rq.UserManager.get_about_us()
+    text = "\n\n".join([
+    f"{about.description}\n{about.contact_type}: {about.phone_number} / {about.email}"
+    for about in description
+])
+    await message.answer(f'О нас:\n{text}')
